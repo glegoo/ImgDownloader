@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import urllib
-import urllib2
+import urllib.request
 import re
 import tool
 import os
@@ -20,8 +20,8 @@ class Spider:
     #获取索引页面的内容
     def getPage(self,pageIndex):
         url = self.siteURL + "/page/" + str(pageIndex)
-        request = urllib2.Request(url)
-        response = urllib2.urlopen(request)
+        # req = request.Request(url)
+        response = urllib.request.urlopen(url)
         return response.read().decode('utf-8')
 
     #获取索引界面所有MM的信息，list格式
@@ -31,13 +31,13 @@ class Spider:
         items = re.findall(pattern,page)
         contents = []
         for item in items:
-            contents.append([item[0],item[1]])
-            print item[1].replace(u"\u3078\u306e\u30d1\u30fc\u30de\u30ea\u30f3\u30af", "")
+            nameArr = item[1].split(' ')
+            contents.append([item[0],nameArr[0]])
         return contents
 
-    #获取MM个人详情页面
+    #获取页面内容
     def getDetailPage(self,infoURL):
-        response = urllib2.urlopen(infoURL)
+        response = urllib.request.urlopen(infoURL)
         return response.read().decode('utf-8')
 
     #获取个人文字简介
@@ -55,38 +55,21 @@ class Spider:
     #保存多张写真图片
     def saveImgs(self,images,name):
         number = 1
-        print u"发现",name,u"共有",len(images),u"张照片"
+        print (u"发现",name,u"共有",len(images),u"张照片")
         for imageURL in images:
-            splitPath = imageURL.split('.')
-            fTail = splitPath.pop()
-            if len(fTail) > 3:
-                fTail = "jpg"
-            fileName = name + "/" + str(number) + "." + fTail
+            path = imageURL.split('/')
+            img = path.pop()
+            fileName = name + "/" + img
+            print (u"正在下载",fileName)
             self.saveImg(imageURL,fileName)
             number += 1
 
-    # 保存头像
-    def saveIcon(self,iconURL,name):
-        splitPath = iconURL.split('.')
-        fTail = splitPath.pop()
-        fileName = name + "/icon." + fTail
-        self.saveImg(iconURL,fileName)
-
-    #保存个人简介
-    def saveBrief(self,content,name):
-        fileName = name + "/" + name + ".txt"
-        f = open(fileName,"w+")
-        print u"正在偷偷保存她的个人信息为",fileName
-        f.write(content.encode('utf-8'))
-
-
     #传入图片地址，文件名，保存单张图片
     def saveImg(self,imageURL,fileName):
-         u = urllib.urlopen(imageURL)
+         u = urllib.request.urlopen(imageURL)
          data = u.read()
          f = open(fileName, 'wb')
          f.write(data)
-         print u"正在悄悄保存她的一张图片为",fileName
          f.close()
 
     #创建新目录
@@ -99,13 +82,12 @@ class Spider:
         # 判断结果
         if not isExists:
             # 如果不存在则创建目录
-            print u"偷偷新建了名字叫做",path,u'的文件夹'
             # 创建目录操作函数
             os.makedirs(path)
             return True
         else:
             # 如果目录存在则不创建，并提示目录已存在
-            print u"名为",path,'的文件夹已经创建成功'
+            print (u"名为",path,'的文件夹已经创建成功')
             return False
 
     #将一页淘宝MM的信息保存起来
@@ -133,7 +115,7 @@ class Spider:
 
 #传入起止页码即可，在此传入了2,10,表示抓取第2到10页的MM
 spider = Spider()
-spider.savePagesInfo(11,11)
+spider.savePagesInfo(1,1)
 end = False
 while not end:
     end = True
